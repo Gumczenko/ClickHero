@@ -1,0 +1,120 @@
+import React, { useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import { useGame } from '../../context/GameContext';
+import StatBar from '../../components/StatBar';
+import { COLORS, FONTS, SPACING } from '../../constants/theme';
+import { pickMonster, Monster } from '../../constants/gameData';
+
+export default function BattleScreen() {
+  const { state, dispatch } = useGame();
+
+  const [monster, setMonster] = useState<Monster>(() => pickMonster(state.level));
+  const [monsterHp, setMonsterHp] = useState(monster.maxHp);
+  const [log, setLog] = useState<string[]>(['Walka rozpoczęta!']);
+  const [shakeAnim] = useState(new Animated.Value(0));
+
+  const playerDead = state.hp <= 0;
+
+  const shake = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const spawnMonster = useCallback((level: number) => {
+    const next = pickMonster(level);
+    setMonster(next);
+    setMonsterHp(next.maxHp);
+    setLog([`Pojawił się ${next.name}!`]);
+  }, []);
+
+  const attack = useCallback(() => {
+    if (playerDead) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const playerDmg = Math.max(1, state.attack - Math.floor(Math.random() * 3));
+    const newMonsterHp = monsterHp - playerDmg;
+    const newLog: string[] = [`Zadałeś ${playerDmg} obrażeń ${monster.name}!`];
+
+    if (newMonsterHp <= 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      dispatch({ type: 'EARN_REWARDS', xp: monster.xpReward, gold: monster.goldReward });
+      newLog.push(`${monster.name} pokonany! +${monster.xpReward} XP, +${monster.goldReward} 🪙`);
+      setMonsterHp(0);
+      setLog(newLog);
+      setTimeout(() => spawnMonster(state.level), 1400);
+      return;
+    }
+
+    const monsterDmg = Math.max(1, monster.attack - Math.floor(Math.random() * 3));
+    dispatch({ type: 'TAKE_DAMAGE', amount: monsterDmg });
+    newLog.push(`${monster.name} atakuje za ${monsterDmg} obrażeń!`);
+    shake();
+    setMonsterHp(newMonsterHp);
+    setLog(newLog);
+  }, [playerDead, state.attack, state.level, monsterHp, monster, dispatch, spawnMonster]);
+
+  const revive = useCallback(() => {
+    dispatch({ type: 'REVIVE' });
+    setLog(['Odrodzono się! Walcz dalej!']);
+  }, [dispatch]);
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+
+        <Animated.View style={[styles.monsterCard, { transform: [{ translateX: shakeAnim }] }]}>
+          <Text style={styles.monsterEmoji}>{monster.emoji}</Text>
+          <Text style={styles.monsterName}>{monster.name}</Text>
+          <StatBar label="❤️" current={monsterHp} max={monster.maxHp} color={COLORS.hp} />
+          <Text style={styles.monsterStats}>⚔️ {monster.attack} ataku</Text>
+        </Animated.View>
+
+        <View style={styles.logBox}>
+          {log.map((line, i) => (
+            <Text key={i} style={[styles.logLine, i === 0 && styles.logLatest]}>{line}</Text>
+          ))}
+        </View>
+
+        <View style={styles.playerCard}>
+          <StatBar label="❤️ Twoje HP" current={state.hp} max={state.maxHp} color={COLORS.hp} />
+          <StatBar label="⭐ XP" current={state.xp} max={state.xpToNext} color={COLORS.xp} />
+        </View>
+
+        {playerDead ? (
+          <TouchableOpacity style={styles.reviveBtn} onPress={revive}>
+            <Text style={styles.reviveBtnText}>💀 Odrodź się</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.attackBtn} onPress={attack} activeOpacity={0.7}>
+            <Text style={styles.attackBtnText}>⚔️ ATAKUJ</Text>
+            <Text style={styles.attackSub}>({state.attack} ataku)</Text>
+          </TouchableOpacity>
+        )}
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  scroll: { padding: SPACING.md, paddingBottom: SPACING.xl },
+  monsterCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: SPACING.lg, marginBottom: SPACING.md, alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
+  monsterEmoji: { fontSize: 80 },
+  monsterName: { fontSize: FONTS.heading, color: COLORS.text, fontWeight: 'bold', marginVertical: SPACING.sm },
+  monsterStats: { color: COLORS.textMuted, fontSize: FONTS.small, marginTop: SPACING.xs },
+  logBox: { backgroundColor: COLORS.surface, borderRadius: 12, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.border, minHeight: 80 },
+  logLine: { color: COLORS.textMuted, fontSize: FONTS.small, marginBottom: 2 },
+  logLatest: { color: COLORS.text, fontWeight: 'bold' },
+  playerCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.border },
+  attackBtn: { backgroundColor: COLORS.accent, borderRadius: 16, padding: SPACING.lg, alignItems: 'center', elevation: 4 },
+  attackBtnText: { color: COLORS.white, fontSize: FONTS.title, fontWeight: 'bold' },
+  attackSub: { color: COLORS.white, fontSize: FONTS.small, opacity: 0.8, marginTop: 4 },
+  reviveBtn: { backgroundColor: COLORS.card, borderRadius: 16, padding: SPACING.lg, alignItems: 'center', borderWidth: 1, borderColor: COLORS.accent },
+  reviveBtnText: { color: COLORS.accent, fontSize: FONTS.heading, fontWeight: 'bold' },
+});
