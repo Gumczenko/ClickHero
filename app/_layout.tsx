@@ -10,6 +10,16 @@ export default function RootLayout() {
         <GameProvider>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="stats"
+              options={{
+                headerShown: true,
+                title: 'Statystyki',
+                headerBackTitle: 'Wróć',
+                headerStyle: { backgroundColor: '#1a1a2e' },
+                headerTintColor: '#eaeaea',
+              }}
+            />
           </Stack>
         </GameProvider>
       </ErrorBoundary>

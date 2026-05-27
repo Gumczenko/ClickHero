@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useGame } from '../../context/GameContext';
@@ -68,7 +68,7 @@ export default function BattleScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
 
         <Animated.View style={[styles.monsterCard, { transform: [{ translateX: shakeAnim }] }]}>
-          <Text style={styles.monsterEmoji}>{monster.emoji}</Text>
+          <Image source={monster.image} style={styles.monsterImage} resizeMode="contain" />
           <Text style={styles.monsterName}>{monster.name}</Text>
           <StatBar label="❤️" current={monsterHp} max={monster.maxHp} color={COLORS.hp} />
           <Text style={styles.monsterStats}>⚔️ {monster.attack} ataku</Text>
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
   scroll: { padding: SPACING.md, paddingBottom: SPACING.xl },
   monsterCard: { backgroundColor: COLORS.surface, borderRadius: 12, padding: SPACING.lg, marginBottom: SPACING.md, alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
-  monsterEmoji: { fontSize: 80 },
+  monsterImage: { width: 140, height: 140 },
   monsterName: { fontSize: FONTS.heading, color: COLORS.text, fontWeight: 'bold', marginVertical: SPACING.sm },
   monsterStats: { color: COLORS.textMuted, fontSize: FONTS.small, marginTop: SPACING.xs },
   logBox: { backgroundColor: COLORS.surface, borderRadius: 12, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.border, minHeight: 80 },
