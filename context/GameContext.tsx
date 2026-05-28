@@ -20,6 +20,8 @@ type Action =
   | { type: 'TAKE_DAMAGE'; amount: number }
   | { type: 'EARN_REWARDS'; xp: number; gold: number }
   | { type: 'REVIVE' }
+  | { type: 'BUY_POTION' }
+  | { type: 'UPGRADE_STAT'; stat: 'attack' | 'defense' | 'maxHp' }
   | { type: 'LOAD_STATE'; state: GameState };
 
 const initialState: GameState = {
@@ -71,6 +73,21 @@ function reducer(state: GameState, action: Action): GameState {
     }
     case 'REVIVE':
       return { ...state, hp: state.maxHp };
+    case 'BUY_POTION': {
+      if (state.gold < 30) return state;
+      return { ...state, gold: state.gold - 30, hp: Math.min(state.hp + 50, state.maxHp) };
+    }
+    case 'UPGRADE_STAT': {
+      const costs = { attack: 50, defense: 40, maxHp: 35 };
+      const gains = { attack: 5, defense: 3, maxHp: 20 };
+      const cost = costs[action.stat];
+      if (state.gold < cost) return state;
+      return {
+        ...state,
+        gold: state.gold - cost,
+        [action.stat]: state[action.stat] + gains[action.stat],
+      };
+    }
     case 'LOAD_STATE':
       return action.state;
     default:

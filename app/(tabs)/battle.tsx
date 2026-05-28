@@ -90,10 +90,24 @@ export default function BattleScreen() {
             <Text style={styles.reviveBtnText}>💀 Odrodź się</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.attackBtn} onPress={attack} activeOpacity={0.7}>
-            <Text style={styles.attackBtnText}>⚔️ ATAKUJ</Text>
-            <Text style={styles.attackSub}>({state.attack} ataku)</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.attackBtn} onPress={attack} activeOpacity={0.7}>
+              <Text style={styles.attackBtnText}>⚔️ ATAKUJ</Text>
+              <Text style={styles.attackSub}>({state.attack} ataku)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.potionBtn, (state.gold < 30 || state.hp >= state.maxHp) && styles.potionDisabled]}
+              onPress={() => {
+                if (state.gold < 30 || state.hp >= state.maxHp) return;
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                dispatch({ type: 'BUY_POTION' });
+              }}
+              disabled={state.gold < 30 || state.hp >= state.maxHp}
+            >
+              <Text style={styles.potionBtnText}>🧪 Mikstura +50 HP</Text>
+              <Text style={styles.potionCost}>🪙 30</Text>
+            </TouchableOpacity>
+          </>
         )}
 
       </ScrollView>
@@ -117,4 +131,8 @@ const styles = StyleSheet.create({
   attackSub: { color: COLORS.white, fontSize: FONTS.small, opacity: 0.8, marginTop: 4 },
   reviveBtn: { backgroundColor: COLORS.card, borderRadius: 16, padding: SPACING.lg, alignItems: 'center', borderWidth: 1, borderColor: COLORS.accent },
   reviveBtnText: { color: COLORS.accent, fontSize: FONTS.heading, fontWeight: 'bold' },
+  potionBtn: { backgroundColor: COLORS.surface, borderRadius: 16, padding: SPACING.md, alignItems: 'center', marginTop: SPACING.sm, borderWidth: 1, borderColor: COLORS.xp, flexDirection: 'row', justifyContent: 'center', gap: SPACING.md },
+  potionDisabled: { opacity: 0.4 },
+  potionBtnText: { color: COLORS.xp, fontSize: FONTS.body, fontWeight: 'bold' },
+  potionCost: { color: COLORS.gold, fontSize: FONTS.body, fontWeight: 'bold' },
 });
