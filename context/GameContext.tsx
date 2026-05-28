@@ -22,6 +22,7 @@ type Action =
   | { type: 'REVIVE' }
   | { type: 'BUY_POTION' }
   | { type: 'UPGRADE_STAT'; stat: 'attack' | 'defense' | 'maxHp' }
+  | { type: 'RESET' }
   | { type: 'LOAD_STATE'; state: GameState };
 
 const initialState: GameState = {
@@ -88,6 +89,8 @@ function reducer(state: GameState, action: Action): GameState {
         [action.stat]: state[action.stat] + gains[action.stat],
       };
     }
+    case 'RESET':
+      return initialState;
     case 'LOAD_STATE':
       return action.state;
     default:

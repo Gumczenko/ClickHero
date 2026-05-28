@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useGame } from '../../context/GameContext';
@@ -14,6 +14,7 @@ export default function BattleScreen() {
   const [monsterHp, setMonsterHp] = useState(monster.maxHp);
   const [log, setLog] = useState<string[]>(['Walka rozpoczęta!']);
   const [shakeAnim] = useState(new Animated.Value(0));
+  const [cooldown, setCooldown] = useState(false);
 
   const playerDead = state.hp <= 0;
 
@@ -33,7 +34,9 @@ export default function BattleScreen() {
   }, []);
 
   const attack = useCallback(() => {
-    if (playerDead) return;
+    if (playerDead || cooldown || monsterHp <= 0) return;
+    setCooldown(true);
+    setTimeout(() => setCooldown(false), 600);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     const playerDmg = Math.max(1, state.attack - Math.floor(Math.random() * 3));
@@ -56,16 +59,31 @@ export default function BattleScreen() {
     shake();
     setMonsterHp(newMonsterHp);
     setLog(newLog);
-  }, [playerDead, state.attack, state.level, monsterHp, monster, dispatch, spawnMonster]);
+  }, [playerDead, cooldown, state.attack, state.level, monsterHp, monster, dispatch, spawnMonster]);
 
   const revive = useCallback(() => {
     dispatch({ type: 'REVIVE' });
     setLog(['Odrodzono się! Walcz dalej!']);
   }, [dispatch]);
 
+  const handleReset = () => {
+    Alert.alert('Reset', 'Czy na pewno chcesz zresetować postać?', [
+      { text: 'Anuluj', style: 'cancel' },
+      { text: 'Resetuj', style: 'destructive', onPress: () => {
+        dispatch({ type: 'RESET' });
+        spawnMonster(1);
+        setLog(['Nowa gra!']);
+      }},
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
+
+        <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
+          <Text style={styles.resetBtnText}>Reset</Text>
+        </TouchableOpacity>
 
         <Animated.View style={[styles.monsterCard, { transform: [{ translateX: shakeAnim }] }]}>
           <Image source={monster.image} style={styles.monsterImage} resizeMode="contain" />
@@ -91,7 +109,7 @@ export default function BattleScreen() {
           </TouchableOpacity>
         ) : (
           <>
-            <TouchableOpacity style={styles.attackBtn} onPress={attack} activeOpacity={0.7}>
+            <TouchableOpacity style={[styles.attackBtn, (cooldown || monsterHp <= 0) && styles.attackBtnCooldown]} onPress={attack} activeOpacity={0.7}>
               <Text style={styles.attackBtnText}>⚔️ ATAKUJ</Text>
               <Text style={styles.attackSub}>({state.attack} ataku)</Text>
             </TouchableOpacity>
@@ -129,10 +147,13 @@ const styles = StyleSheet.create({
   attackBtn: { backgroundColor: COLORS.accent, borderRadius: 16, padding: SPACING.lg, alignItems: 'center', elevation: 4 },
   attackBtnText: { color: COLORS.white, fontSize: FONTS.title, fontWeight: 'bold' },
   attackSub: { color: COLORS.white, fontSize: FONTS.small, opacity: 0.8, marginTop: 4 },
+  attackBtnCooldown: { opacity: 0.6 },
   reviveBtn: { backgroundColor: COLORS.card, borderRadius: 16, padding: SPACING.lg, alignItems: 'center', borderWidth: 1, borderColor: COLORS.accent },
   reviveBtnText: { color: COLORS.accent, fontSize: FONTS.heading, fontWeight: 'bold' },
   potionBtn: { backgroundColor: COLORS.surface, borderRadius: 16, padding: SPACING.md, alignItems: 'center', marginTop: SPACING.sm, borderWidth: 1, borderColor: COLORS.xp, flexDirection: 'row', justifyContent: 'center', gap: SPACING.md },
   potionDisabled: { opacity: 0.4 },
   potionBtnText: { color: COLORS.xp, fontSize: FONTS.body, fontWeight: 'bold' },
   potionCost: { color: COLORS.gold, fontSize: FONTS.body, fontWeight: 'bold' },
+  resetBtn: { alignSelf: 'flex-start', marginBottom: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border },
+  resetBtnText: { color: COLORS.textMuted, fontSize: FONTS.small },
 });
