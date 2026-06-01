@@ -14,17 +14,19 @@ export default function BattleScreen() {
   const [monsterHp, setMonsterHp] = useState(monster.maxHp);
   const [log, setLog] = useState<string[]>(['Walka rozpoczęta!']);
   const [shakeAnim] = useState(new Animated.Value(0));
+  const [levelUpAnim] = useState(new Animated.Value(0));
+  const [showLevelUp, setShowLevelUp] = useState(false);
   const [cooldown, setCooldown] = useState(false);
 
   const playerDead = state.hp <= 0;
 
-  const shake = () => {
+  const shake = useCallback(() => {
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
     ]).start();
-  };
+  }, [shakeAnim]);
 
   const spawnMonster = useCallback((level: number) => {
     const next = pickMonster(level);
@@ -44,11 +46,27 @@ export default function BattleScreen() {
     const newLog: string[] = [`Zadałeś ${playerDmg} obrażeń ${monster.name}!`];
 
     if (newMonsterHp <= 0) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       dispatch({ type: 'EARN_REWARDS', xp: monster.xpReward, gold: monster.goldReward });
       newLog.push(`${monster.name} pokonany! +${monster.xpReward} XP, +${monster.goldReward} 🪙`);
       setMonsterHp(0);
       setLog(newLog);
+
+      const newXp = state.xp + monster.xpReward;
+      if (newXp >= state.xpToNext) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setTimeout(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success), 200);
+        setTimeout(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success), 400);
+        setShowLevelUp(true);
+        levelUpAnim.setValue(0);
+        Animated.sequence([
+          Animated.timing(levelUpAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.delay(800),
+          Animated.timing(levelUpAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+        ]).start(() => setShowLevelUp(false));
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
       setTimeout(() => spawnMonster(state.level), 1400);
       return;
     }
@@ -59,7 +77,7 @@ export default function BattleScreen() {
     shake();
     setMonsterHp(newMonsterHp);
     setLog(newLog);
-  }, [playerDead, cooldown, state.attack, state.level, monsterHp, monster, dispatch, spawnMonster]);
+  }, [playerDead, cooldown, state.attack, state.level, state.xp, state.xpToNext, monsterHp, monster, dispatch, spawnMonster, levelUpAnim, shake]);
 
   const revive = useCallback(() => {
     dispatch({ type: 'REVIVE' });
@@ -84,6 +102,12 @@ export default function BattleScreen() {
         <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
           <Text style={styles.resetBtnText}>Reset</Text>
         </TouchableOpacity>
+
+        {showLevelUp && (
+          <Animated.View style={[styles.levelUpBanner, { opacity: levelUpAnim, transform: [{ scale: levelUpAnim }] }]}>
+            <Text style={styles.levelUpText}>⬆️ LEVEL UP! 🎉</Text>
+          </Animated.View>
+        )}
 
         <Animated.View style={[styles.monsterCard, { transform: [{ translateX: shakeAnim }] }]}>
           <Image source={monster.image} style={styles.monsterImage} resizeMode="contain" />
@@ -156,4 +180,6 @@ const styles = StyleSheet.create({
   potionCost: { color: COLORS.gold, fontSize: FONTS.body, fontWeight: 'bold' },
   resetBtn: { alignSelf: 'flex-start', marginBottom: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border },
   resetBtnText: { color: COLORS.textMuted, fontSize: FONTS.small },
+  levelUpBanner: { backgroundColor: COLORS.gold, borderRadius: 12, padding: SPACING.md, alignItems: 'center', marginBottom: SPACING.md },
+  levelUpText: { color: COLORS.bg, fontSize: FONTS.heading, fontWeight: 'bold' },
 });

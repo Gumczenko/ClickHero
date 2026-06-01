@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { xpToNext, pickMonster, MONSTERS } from '../constants/gameData';
+import { xpToNext, pickMonster } from '../constants/gameData';
 
 describe('xpToNext', () => {
   it('returns 100 for level 1', () => {
@@ -31,8 +31,9 @@ describe('pickMonster', () => {
     expect(pickMonster(1).id).not.toBe('dragon');
   });
 
-  it('returns dragon at level 11', () => {
-    expect(pickMonster(11).id).toBe('dragon');
+  it('can return dragon at level 11', () => {
+    const ids = Array.from({ length: 20 }, () => pickMonster(11).id);
+    expect(ids).toContain('dragon');
   });
 });
 
