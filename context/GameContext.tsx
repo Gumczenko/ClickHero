@@ -101,12 +101,14 @@ function reducer(state: GameState, action: Action): GameState {
 type GameContextValue = {
   state: GameState;
   dispatch: React.Dispatch<Action>;
+  loading: boolean;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
     AsyncStorage.getItem(SAVE_KEY).then(raw => {
@@ -115,14 +117,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           dispatch({ type: 'LOAD_STATE', state: JSON.parse(raw) });
         } catch {}
       }
+      setLoading(false);
     });
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem(SAVE_KEY, JSON.stringify(state));
-  }, [state]);
+    if (!loading) {
+      AsyncStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+  }, [state, loading]);
 
-  return <GameContext.Provider value={{ state, dispatch }}>{children}</GameContext.Provider>;
+  return <GameContext.Provider value={{ state, dispatch, loading }}>{children}</GameContext.Provider>;
 }
 
 export function useGame() {

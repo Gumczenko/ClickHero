@@ -25,7 +25,7 @@ export default function HeroScreen() {
           <StatBar label="⭐ XP" current={state.xp} max={state.xpToNext} color={COLORS.xp} />
         </View>
 
-        <TouchableOpacity style={styles.statsBtn} onPress={() => router.push('/stats')}>
+        <TouchableOpacity style={styles.statsBtn} onPress={() => router.push({ pathname: '/stats', params: { level: state.level } })}>
           <Text style={styles.statsBtnText}>📊 Szczegółowe statystyki</Text>
         </TouchableOpacity>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGame } from '../context/GameContext';
 import { COLORS, FONTS, SPACING } from '../constants/theme';
@@ -12,6 +13,7 @@ const UPGRADES = [
 ];
 
 export default function StatsScreen() {
+  const { level } = useLocalSearchParams<{ level: string }>();
   const { state, dispatch } = useGame();
 
   const rows = [
@@ -34,7 +36,7 @@ export default function StatsScreen() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
         <Image source={require('../assets/rycerz.png')} style={styles.heroImage} resizeMode="contain" />
-        <Text style={styles.heroName}>Poziom {state.level} Wojownik</Text>
+        <Text style={styles.heroName}>Poziom {level ?? state.level} Wojownik</Text>
 
         <View style={styles.card}>
           {rows.map(({ label, value }, i) => (
