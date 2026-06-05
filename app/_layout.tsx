@@ -26,7 +26,7 @@ function AppNavigator() {
           headerShown: true,
           title: 'Statystyki',
           headerBackTitle: 'Wróć',
-          headerStyle: { backgroundColor: '#1a1a2e' },
+          headerStyle: { backgroundColor: COLORS.bg },
           headerTintColor: '#eaeaea',
         }}
       />

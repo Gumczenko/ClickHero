@@ -20,6 +20,7 @@ export default function BattleScreen() {
 
   const playerDead = state.hp <= 0;
 
+  // useCallback żeby funkcja nie była tworzona od nowa przy każdym renderze
   const shake = useCallback(() => {
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
@@ -36,7 +37,9 @@ export default function BattleScreen() {
   }, []);
 
   const attack = useCallback(() => {
+    // blokujemy atak gdy gracz martwy, cooldown aktywny lub potwór już zabity
     if (playerDead || cooldown || monsterHp <= 0) return;
+    // cooldown 600ms żeby nie można było spamować i bugować stan
     setCooldown(true);
     setTimeout(() => setCooldown(false), 600);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

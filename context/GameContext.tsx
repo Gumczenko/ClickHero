@@ -37,9 +37,11 @@ const initialState: GameState = {
   kills: 0,
 };
 
+// cały stan gry w jednym miejscu zamiast rozrzucać po ekranach
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'TAKE_DAMAGE': {
+      // Math.max(1) żeby zawsze zadać chociaż 1 dmg nawet jak obrona jest wysoka
       const dmg = Math.max(1, action.amount - state.defense);
       return { ...state, hp: Math.max(0, state.hp - dmg) };
     }
@@ -49,6 +51,7 @@ function reducer(state: GameState, action: Action): GameState {
       let newXpToNext = state.xpToNext;
       let leveled = false;
 
+      // pętla bo można wbić kilka lvl naraz jak się dużo xp dostanie
       while (newXp >= newXpToNext) {
         newXp -= newXpToNext;
         level++;
@@ -69,6 +72,7 @@ function reducer(state: GameState, action: Action): GameState {
         defense,
         gold: state.gold + action.gold,
         kills: state.kills + 1,
+        // po awansie leczymy do pełna jako bonus
         hp: leveled ? maxHp : state.hp,
       };
     }
@@ -76,6 +80,7 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, hp: state.maxHp };
     case 'BUY_POTION': {
       if (state.gold < 30) return state;
+      // Math.min żeby hp nie przekroczyło maksimum
       return { ...state, gold: state.gold - 30, hp: Math.min(state.hp + 50, state.maxHp) };
     }
     case 'UPGRADE_STAT': {
@@ -104,12 +109,14 @@ type GameContextValue = {
   loading: boolean;
 };
 
+// dzięki temu każdy ekran ma dostęp do stanu bez przekazywania przez props
 const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [loading, setLoading] = React.useState(true);
 
+  // wczytujemy zapis tylko raz przy starcie
   useEffect(() => {
     AsyncStorage.getItem(SAVE_KEY).then(raw => {
       if (raw) {
@@ -121,6 +128,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // zapisujemy po każdej zmianie, guard na loading żeby nie nadpisać zapisu pustym stanem
   useEffect(() => {
     if (!loading) {
       AsyncStorage.setItem(SAVE_KEY, JSON.stringify(state));

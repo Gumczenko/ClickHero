@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "scheme": "clickhero",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/clickhero.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/clickhero.png",
       "resizeMode": "contain",
       "backgroundColor": "#1a1a2e"
     },
@@ -21,7 +21,7 @@
       "package": "com.piotrgumkowski.clickhero",
       "adaptiveIcon": {
         "backgroundColor": "#1a1a2e",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "foregroundImage": "./assets/clickhero.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }

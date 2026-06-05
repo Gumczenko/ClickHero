@@ -9,10 +9,11 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border },
         tabBarActiveTintColor: COLORS.accent,
         tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarLabelStyle: { fontSize: 15, fontWeight: 'bold' },
       }}
     >
-      <Tabs.Screen name="index"  options={{ title: 'Bohater', tabBarIcon: () => null, tabBarLabel: '🧙 Bohater' }} />
-      <Tabs.Screen name="battle" options={{ title: 'Walka',   tabBarIcon: () => null, tabBarLabel: '⚔️ Walka' }} />
+      <Tabs.Screen name="index"  options={{ title: 'Bohater', tabBarIcon: () => null, tabBarLabel: 'Bohater' }} />
+      <Tabs.Screen name="battle" options={{ title: 'Walka',   tabBarIcon: () => null, tabBarLabel: 'Walka' }} />
     </Tabs>
   );
 }

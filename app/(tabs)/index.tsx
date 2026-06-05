@@ -13,7 +13,7 @@ export default function HeroScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>⚔️ ClickHero</Text>
+        <Image source={require('../../assets/clickhero.png')} style={styles.logo} resizeMode="contain" />
 
         <View style={styles.card}>
           <Image source={require('../../assets/rycerz.png')} style={styles.heroImage} resizeMode="contain" />
@@ -37,7 +37,7 @@ export default function HeroScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
   container: { padding: SPACING.md, paddingBottom: SPACING.xl },
-  title: { fontSize: FONTS.title, color: COLORS.accent, fontWeight: 'bold', textAlign: 'center', marginBottom: SPACING.md },
+  logo: { width: '100%', height: 140, marginBottom: SPACING.md },
   card: { backgroundColor: COLORS.surface, borderRadius: 12, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.border },
   heroImage: { width: 120, height: 120, alignSelf: 'center' },
   heroName: { fontSize: FONTS.heading, color: COLORS.text, fontWeight: 'bold', textAlign: 'center', marginTop: SPACING.sm },

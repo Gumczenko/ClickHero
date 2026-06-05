@@ -17,11 +17,13 @@ export const MONSTERS: Monster[] = [
   { id: 'dragon', name: 'Smok',   image: require('../assets/smok.png'),   maxHp: 420, attack: 70, xpReward: 220, goldReward: 120, minLevel: 11 },
 ];
 
+// losuje potwora spośród odblokowanych — dzięki temu wyższe lvl nie zawsze dostają smoka
 export function pickMonster(heroLevel: number): Monster {
   const available = MONSTERS.filter(m => m.minLevel <= heroLevel);
   return available[Math.floor(Math.random() * available.length)];
 }
 
+// każdy lvl wymaga o 20% więcej xp niż poprzedni
 export function xpToNext(level: number): number {
   return Math.floor(100 * Math.pow(1.2, level - 1));
 }
